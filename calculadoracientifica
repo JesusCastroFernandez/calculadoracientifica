@@ -1,0 +1,51 @@
+from qiskit import *
+from qiskit.tools.jupyter import *
+from numpy import pi
+----------------------------------
+def calculator(num1, num2, operation):
+    # Create a quantum circuit with two quantum registers and two classical registers
+    qc = QuantumCircuit(2, 2)
+
+    # Apply Hadamard gate to both quantum registers to create a superposition
+    qc.h(0)
+    qc.h(1)
+
+    # Encode num1 and num2 into the quantum registers using rotation gates
+    qc.rz(num1, 0)
+    qc.rz(num2, 1)
+
+    # Apply CNOT gate to entangle the quantum registers
+    qc.cx(0, 1)
+
+    # Apply a rotation gate to the first quantum register to encode the operation
+    if operation == 'sum':
+        qc.rz(0, 0)
+    elif operation == 'subtract':
+        qc.rz(pi, 0)
+    elif operation == 'multiply':
+        qc.rx(pi/2, 0)
+    elif operation == 'divide':
+        qc.ry(pi/2, 0)
+
+    # Apply Hadamard gates to the quantum registers again
+    qc.h(0)
+    qc.h(1)
+
+    # Measure the quantum registers and store the results in the classical registers
+    qc.measure(0, 0)
+    qc.measure(1, 1)
+
+    # Run the quantum circuit on a simulator
+    simulator = Aer.get_backend('qasm_simulator')
+    result = execute(qc, simulator, shots=1).result()
+    counts = result.get_counts(qc)
+
+    # Extract the result from the measurement
+    output = list(counts.keys())[0]
+    return int(output, 2)
+---------------------------------------------
+# Add 2 and 3
+print(calculator(2, 3, 'sum'))
+
+# Add pi and e
+print(calculator(pi, 2.718, 'sum'))
